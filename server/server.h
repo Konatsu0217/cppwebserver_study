@@ -47,7 +47,7 @@ private:
 	static int MAX_FD;
 	static int MAX_EVENT_NUMBER;
 	mutable char* ip = "192.168.3.175";
-	mutable int port = atoi("12344");
+	mutable int port = atoi("12345");
 
 public:
 	// 读取配置文件，修改Mutable基础参数
@@ -75,6 +75,7 @@ private:
 	static http_conn* users;
 	static int* pipefd;
 	static time_heap* timer;
+	int m_timerSLOT;
 	friend void timer_cb_func(util_timer* t);
 public:
 	void initServer();

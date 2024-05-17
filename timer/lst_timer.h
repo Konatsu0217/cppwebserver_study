@@ -47,6 +47,7 @@ class time_heap {
 private:
 	std::priority_queue<util_timer*, std::vector<util_timer*>, timer_cmp> pq;
 	std::unordered_map<int, util_timer*> hash;
+	int top_time = -1;
 
 public:
 
@@ -79,6 +80,14 @@ public:
 		return hash[connfd]->reset(delay);
 	}
 
+	bool getTopTime(int& t) {
+		if (top_time == -1)
+			return false;
+
+		t = top_time;
+		return true;
+	}
+
 	// 处理到期的定时器
 	void tick() {
 		if (pq.empty()) {
@@ -88,6 +97,7 @@ public:
 		while (!pq.empty()) {
 			util_timer* tmp = pq.top();
 			if (tmp->expire > cur) {
+				top_time = tmp->expire - cur;
 				break;  // 没有到期的定时器
 			}
 
