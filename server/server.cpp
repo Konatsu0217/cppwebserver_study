@@ -11,7 +11,11 @@ time_heap* myServer::timer = new time_heap;
 //}
 void time_handler(int t) {
 	myServer::timer->tick();
-	alarm(TIMESLOT);
+	// 每次重设定时器以最近会过期的定时器的剩余时长更新
+	int adaptTIMESOLT;
+	if(myServer::timer->getTopTime(adaptTIMESOLT))
+		alarm(adaptTIMESOLT);
+	else alarm(TIMESLOT);
 }
 
 void sig_handler(int sig) {
@@ -60,18 +64,7 @@ void myServer::runServer(int useLog)
 		for (int i = 0; i < number; ++i) {
 			int sockfd = m_events[i].data.fd;
 			if (sockfd == m_listenfd) {
-				int mmsg = createConnection();
-				if (mmsg == 1) {
-					continue;
-				}
-				else if (mmsg == 2) {
-					continue;
-				}
-				else{
-					if (logger) {
-						LOG_INFO("sockfd %d connected.", sockfd);
-					}
-				}
+				createConnection();
 			}
 			else if (m_events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) {
 				closeConnection(sockfd);
@@ -103,6 +96,9 @@ inline int myServer::createConnection() {
 		//printf("server busy.\n");
 		return 2;
 	}
+	char client_ip[INET_ADDRSTRLEN] = { 0 };
+	LOG_INFO("client %d (%s:%d) connected.",connfd, inet_ntop(AF_INET, &client_addr.sin_addr, client_ip, sizeof(client_ip)),
+		ntohs(client_addr.sin_port));
 	users[connfd].init(connfd, client_addr);
 	// 5.14 begin
 	addtimer(connfd);
